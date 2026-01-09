@@ -1,0 +1,6 @@
+text_id,variant,lr_probability,lr_label,transformer_probability,transformer_label,avg_sentence_length,lexical_diversity,timestamp
+1,original,1.0,AI,1.0,AI,13.0,1.0,2026-01-09T18:19:00.065529
+1,paraphrase,1.0,AI,0.65,AI,15.0,1.0,2026-01-09T18:19:00.094709
+1,human_style,1.0,AI,1.0,human,14.0,1.0,2026-01-09T18:19:00.124986
+2,original,1.0,AI,1.0,AI,12.0,1.0,2026-01-09T18:19:00.155319
+2,paraphrase,1.0,AI,1.0,AI,12.0,1.0,2026-01-09T18:19:00.184449

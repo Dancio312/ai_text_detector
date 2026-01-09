@@ -1,0 +1,3 @@
+model,total_samples,ai_predictions,human_predictions
+Logistic Regression,5,5,0
+Transformer (DistilBERT),5,4,1
