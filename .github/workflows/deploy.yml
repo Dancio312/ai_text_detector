@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -21,19 +20,19 @@ jobs:
 
             cd /home/daniel-wardak/ai_text_detector
 
-            # Upewnij się, że repo jest czyste (bez lokalnych konfliktów)
+            # Zawsze bierz dokładnie to co na origin/master
             git fetch --all --prune
             git reset --hard origin/master
 
-            # Zależności
+            # Dependencies
             ./venv/bin/python -m pip install --upgrade pip wheel
             ./venv/bin/pip install -r requirements.txt
 
             # Restart
             sudo /usr/bin/systemctl restart ai-text-detector.service
 
-            # Healthcheck z retry (api czasem startuje chwilę)
-            for i in {1..20}; do
+            # Healthcheck (czeka aż API wstanie)
+            for i in {1..30}; do
               if curl -fsS http://127.0.0.1:8000/docs >/dev/null; then
                 echo "Deploy OK"
                 exit 0
@@ -43,5 +42,6 @@ jobs:
 
             echo "Healthcheck failed"
             sudo /usr/bin/systemctl status ai-text-detector.service --no-pager || true
+            sudo journalctl -u ai-text-detector.service -n 100 --no-pager || true
             exit 1
 
