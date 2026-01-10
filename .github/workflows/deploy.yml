@@ -1,0 +1,54 @@
+name: Deploy ai_text_detector to server
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: 22
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euxo pipefail
+
+            # 1) Repo na serwerze ma istnieć. Jeśli nie istnieje - klonuj
+            if [ ! -d /home/daniel-wardak/ai_text_detector/.git ]; then
+              cd /home/daniel-wardak
+              git clone https://github.com/Dancio312/ai_text_detector.git
+            fi
+
+            cd /home/daniel-wardak/ai_text_detector
+            git fetch --all
+            git reset --hard origin/main
+
+            # 2) Venv (jeśli nie ma - stwórz)
+            if [ ! -d venv ]; then
+              python3 -m venv venv
+            fi
+
+            ./venv/bin/python -m pip install --upgrade pip wheel
+            ./venv/bin/pip install -r requirements.txt
+
+            # 3) Restart serwisu
+            sudo /usr/bin/systemctl restart ai-text-detector.service
+
+            # 4) Poczekaj aż wstanie i zrób health-check (retry)
+            for i in {1..30}; do
+              if curl -fsS http://127.0.0.1:8000/docs >/dev/null; then
+                echo "Deploy OK"
+                exit 0
+              fi
+              sleep 1
+            done
+
+            echo "API did not start - showing logs:"
+            sudo journalctl -u ai-text-detector.service -n 80 --no-pager
+            exit 1
