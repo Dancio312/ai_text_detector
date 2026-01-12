@@ -10,3 +10,8 @@ app.include_router(router)
 @app.get("/")
 def root():
     return {"status": "API dziala"}
+    
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
