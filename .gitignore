@@ -364,3 +364,5 @@ FodyWeavers.xsd
 venv/
 __pycache__/
 *.pyc
+
+constraints.txt
