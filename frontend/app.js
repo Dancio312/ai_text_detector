@@ -1,20 +1,32 @@
+const textarea = document.getElementById("text");
+const resultBox = document.getElementById("result");
+const loader = document.getElementById("loader");
+const counter = document.getElementById("counter");
+const button = document.getElementById("analyzeBtn");
+
+const MIN_WORDS = 20;
+
+/* === live word counter === */
+textarea.addEventListener("input", () => {
+    const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
+    counter.textContent = `${words} words`;
+});
+
 async function analyze() {
-    const textarea = document.getElementById("text");
-    const resultBox = document.getElementById("result");
-
     const text = textarea.value.trim();
-
-    // === Frontend validation (consistent with backend) ===
     const wordCount = text.split(/\s+/).filter(Boolean).length;
-    const MIN_WORDS = 20;
+
+    resultBox.className = "";
+    resultBox.textContent = "";
 
     if (wordCount < MIN_WORDS) {
         showError(`Text is too short (minimum ${MIN_WORDS} words).`);
         return;
     }
 
+    loader.classList.remove("hidden");
+    button.disabled = true;
     resultBox.textContent = "Analyzing...";
-    resultBox.className = "";
 
     try {
         const response = await fetch("http://127.0.0.1:8000/analyze", {
@@ -22,12 +34,11 @@ async function analyze() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ text: text })
+            body: JSON.stringify({ text })
         });
 
         const data = await response.json();
 
-        // === Backend validation error ===
         if (!response.ok) {
             showError(data.error || "Validation error from API.");
             return;
@@ -38,12 +49,13 @@ async function analyze() {
     } catch (error) {
         console.error(error);
         showError("Cannot connect to backend.");
+    } finally {
+        loader.classList.add("hidden");
+        button.disabled = false;
     }
 }
 
 function displayResult(data) {
-    const resultBox = document.getElementById("result");
-
     const transformer = data.transformer;
     const logistic = data.logistic_regression;
 
@@ -70,7 +82,6 @@ function displayResult(data) {
 }
 
 function showError(message) {
-    const resultBox = document.getElementById("result");
     resultBox.textContent = message;
     resultBox.className = "error";
 }
