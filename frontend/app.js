@@ -1,9 +1,15 @@
 async function analyze() {
-    const text = document.getElementById("text").value.trim();
+    const textarea = document.getElementById("text");
     const resultBox = document.getElementById("result");
 
-    if (text.length < 50) {
-        showError("Text is too short (minimum 50 characters).");
+    const text = textarea.value.trim();
+
+    // === Frontend validation (consistent with backend) ===
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    const MIN_WORDS = 20;
+
+    if (wordCount < MIN_WORDS) {
+        showError(`Text is too short (minimum ${MIN_WORDS} words).`);
         return;
     }
 
@@ -13,44 +19,52 @@ async function analyze() {
     try {
         const response = await fetch("http://127.0.0.1:8000/analyze", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text })
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ text: text })
         });
 
         const data = await response.json();
 
+        // === Backend validation error ===
         if (!response.ok) {
-            showError("Validation error from API.");
+            showError(data.error || "Validation error from API.");
             return;
         }
 
         displayResult(data);
 
-    } catch (err) {
+    } catch (error) {
+        console.error(error);
         showError("Cannot connect to backend.");
     }
 }
 
 function displayResult(data) {
-    const transformer = data.transformer;
-    const logistic = data.logistic_regression;
     const resultBox = document.getElementById("result");
 
-    const labelText = transformer.label === "AI"
-        ? "AI GENERATED TEXT"
-        : "HUMAN WRITTEN TEXT";
+    const transformer = data.transformer;
+    const logistic = data.logistic_regression;
 
-    resultBox.className = transformer.label === "AI" ? "ai" : "human";
+    const isAI = transformer.label === "AI";
+
+    resultBox.className = isAI ? "ai" : "human";
 
     resultBox.innerHTML = `
-        <h3>${labelText}</h3>
-        <p><strong>Transformer confidence:</strong>
-           ${(transformer.ai_probability * 100).toFixed(2)}%
+        <h3>${isAI ? "AI GENERATED TEXT" : "HUMAN WRITTEN TEXT"}</h3>
+
+        <p>
+            <strong>Transformer model:</strong><br>
+            Confidence: ${(transformer.ai_probability * 100).toFixed(2)}%
         </p>
+
         <hr>
-        <p><strong>Logistic Regression:</strong>
-           ${logistic.label}
-           (${(logistic.ai_probability * 100).toFixed(2)}%)
+
+        <p>
+            <strong>Logistic Regression:</strong><br>
+            Label: ${logistic.label}<br>
+            Confidence: ${(logistic.ai_probability * 100).toFixed(2)}%
         </p>
     `;
 }
