@@ -18,14 +18,19 @@ jobs:
           script: |
             set -euxo pipefail
 
-            cd /home/daniel-wardak/ai_text_detector
-            git pull --ff-only
+git config --global --add safe.directory /home/daniel-wardak/ai_text_detector
 
-            ./venv/bin/python -m pip install --upgrade pip wheel
-            ./venv/bin/pip install -r requirements.txt
+cd /home/daniel-wardak/ai_text_detector
+git pull --ff-only
 
-            sudo /usr/bin/systemctl restart ai-text-detector.service
+./venv/bin/python -m pip install --upgrade pip wheel
+./venv/bin/pip install -r requirements.txt
 
-            curl -sSf http://127.0.0.1:8000/docs >/dev/null
-            echo "Deploy OK"
+sudo -n /usr/bin/systemctl restart ai-text-detector.service
+
+# lepiej /health niż /docs (jak dodasz endpoint)
+curl -sSf http://127.0.0.1:8000/health >/dev/null
+echo "Deploy OK"
+
+
 
