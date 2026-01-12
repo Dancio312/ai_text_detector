@@ -2,7 +2,7 @@ name: Deploy ai_text_detector to server
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   deploy:
@@ -16,32 +16,16 @@ jobs:
           port: 22
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -euo pipefail
+            set -euxo pipefail
 
             cd /home/daniel-wardak/ai_text_detector
+            git pull --ff-only
 
-            # Zawsze bierz dokładnie to co na origin/master
-            git fetch --all --prune
-            git reset --hard origin/master
-
-            # Dependencies
             ./venv/bin/python -m pip install --upgrade pip wheel
             ./venv/bin/pip install -r requirements.txt
 
-            # Restart
             sudo /usr/bin/systemctl restart ai-text-detector.service
 
-            # Healthcheck (czeka aż API wstanie)
-            for i in {1..30}; do
-              if curl -fsS http://127.0.0.1:8000/docs >/dev/null; then
-                echo "Deploy OK"
-                exit 0
-              fi
-              sleep 1
-            done
-
-            echo "Healthcheck failed"
-            sudo /usr/bin/systemctl status ai-text-detector.service --no-pager || true
-            sudo journalctl -u ai-text-detector.service -n 100 --no-pager || true
-            exit 1
+            curl -sSf http://127.0.0.1:8000/docs >/dev/null
+            echo "Deploy OK"
 
