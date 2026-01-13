@@ -1,6 +1,5 @@
-const textarea = document.getElementById("text");
+﻿const textarea = document.getElementById("text");
 const counter = document.getElementById("wordCounter");
-const status = document.getElementById("status");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultBox = document.getElementById("result");
 
@@ -10,23 +9,42 @@ textarea.addEventListener("input", updateCounter);
 
 function updateCounter() {
     const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
-    counter.textContent = `Words: ${words} / ${MIN_WORDS}`;
+
+    // 🔥 NOWE: anulowanie wyniku po zmianie tekstu
+    if (resultBox.innerHTML !== "") {
+        resultBox.innerHTML = "";
+    }
 
     if (words >= MIN_WORDS) {
-        status.textContent = "Ready";
-        status.className = "valid";
+        counter.innerHTML = `Words counter: <strong>${words}</strong> / ${MIN_WORDS} <span class="ok">✔</span>`;
         analyzeBtn.disabled = false;
     } else {
-        status.textContent = "Too short";
-        status.className = "invalid";
+        counter.innerHTML = `Words counter: <strong>${words}</strong> / ${MIN_WORDS} <span class="bad">❌</span>`;
         analyzeBtn.disabled = true;
     }
 }
 
+function clearAll() {
+    textarea.value = "";
+    resultBox.innerHTML = "";
+    analyzeBtn.disabled = true;
+    updateCounter();
+}
+
+function generateExample() {
+    textarea.value =
+        "Artificial intelligence has rapidly evolved in recent years, transforming the way people interact with technology. " +
+        "Modern AI systems can analyze data, understand language, and generate human-like text with impressive accuracy.";
+
+    textarea.dispatchEvent(new Event("input"));
+}
+
 async function analyze() {
     const text = textarea.value.trim();
-    resultBox.textContent = "Analyzing...";
-    resultBox.className = "result-box";
+
+    if (text.split(/\s+/).length < MIN_WORDS) return;
+
+    resultBox.innerHTML = "<div class='result-card'>Analyzing...</div>";
 
     try {
         const response = await fetch("http://127.0.0.1:8000/analyze", {
@@ -36,69 +54,43 @@ async function analyze() {
         });
 
         const data = await response.json();
-        if (!response.ok) {
-            showError(data.error || "API error");
-            return;
-        }
+        renderResult(data);
 
-        displayResult(data);
     } catch {
-        showError("Cannot connect to backend.");
+        resultBox.innerHTML =
+            "<div class='result-card'>Cannot connect to backend.</div>";
     }
 }
 
-function displayResult(data) {
+function renderResult(data) {
     const t = data.transformer;
     const l = data.logistic_regression;
 
-    const tConf = Math.round(t.ai_probability * 100);
-    const lConf = Math.round(l.ai_probability * 100);
+    const finalAI = (t.ai_probability + l.ai_probability) / 2 >= 0.5;
 
     resultBox.innerHTML = `
-        <h3 style="margin-bottom:10px;">Model comparison</h3>
+        <div class="result-card">
 
-        <div class="model-grid">
-            <div class="model-card">
-                <div class="model-title">Transformer (DistilBERT)</div>
-                <div class="progress-container">
-                    <div class="progress-label">
-                        ${t.label} � ${tConf}%
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill ${t.label === "AI" ? "progress-ai" : "progress-human"}"
-                             style="--value:${tConf}%"></div>
-                    </div>
+            <div class="model">
+                <strong>Transformer</strong>
+                <div class="progress">
+                    <div class="progress-fill" style="width:${t.ai_probability * 100}%"></div>
                 </div>
+                ${(t.ai_probability * 100).toFixed(1)}%
             </div>
 
-            <div class="model-card">
-                <div class="model-title">Logistic Regression</div>
-                <div class="progress-container">
-                    <div class="progress-label">
-                        ${l.label} � ${lConf}%
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill ${l.label === "AI" ? "progress-ai" : "progress-human"}"
-                             style="--value:${lConf}%"></div>
-                    </div>
+            <div class="model">
+                <strong>Logistic Regression</strong>
+                <div class="progress">
+                    <div class="progress-fill" style="width:${l.ai_probability * 100}%"></div>
                 </div>
+                ${(l.ai_probability * 100).toFixed(1)}%
             </div>
+
+            <div class="final">
+                Final verdict: ${finalAI ? "🤖 AI Generated" : "🧑 Human Written"}
+            </div>
+
         </div>
     `;
-}
-
-function showError(msg) {
-    resultBox.textContent = msg;
-}
-
-function clearAll() {
-    textarea.value = "";
-    resultBox.textContent = "Ready to analyze. Enter text and click Analyze.";
-    updateCounter();
-}
-
-function generateSample() {
-    textarea.value =
-        "Artificial intelligence systems are increasingly used to generate text that closely resembles human writing. These systems are trained on large datasets and learn complex language patterns.";
-    updateCounter();
 }
