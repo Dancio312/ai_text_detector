@@ -19,13 +19,8 @@ function updateCounter() {
         hasResult = false;
     }
 
-    if (words >= MIN_WORDS) {
-        counter.innerHTML = `Words: <strong>${words}</strong> / ${MIN_WORDS} ✔`;
-        analyzeBtn.disabled = false;
-    } else {
-        counter.innerHTML = `Words: <strong>${words}</strong> / ${MIN_WORDS} ❌`;
-        analyzeBtn.disabled = true;
-    }
+    counter.innerHTML = `Words: ${words} / ${MIN_WORDS}`;
+    analyzeBtn.disabled = words < MIN_WORDS;
 }
 
 function clearAll() {
@@ -68,12 +63,37 @@ async function analyze() {
     }
 }
 
+function animateProgress(bar, targetPercent, duration = 1200) {
+    let start = null;
+
+    function step(timestamp) {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        bar.style.width = (progress * targetPercent) + "%";
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step);
+}
+
 function renderResult(data) {
     const t = data.transformer;
     const l = data.logistic_regression;
+    const v = data.verdict;
 
-    const finalAI = (t.ai_probability + l.ai_probability) / 2 >= 0.5;
     hasResult = true;
+
+    let verdictLabel;
+    if (v.label === "AI") {
+        verdictLabel = "🤖 AI Generated Text";
+    } else if (v.label === "HUMAN") {
+        verdictLabel = "🧑 Human Written Text";
+    } else {
+        verdictLabel = "⚖️ Inconclusive Result";
+    }
 
     resultBox.innerHTML = `
         <div class="result-card">
@@ -95,17 +115,21 @@ function renderResult(data) {
             </div>
 
             <div class="final">
-                Analysis result:<br>
-                <strong>${finalAI ? "🤖 AI Generated Text" : "🧑 Human Written Text"}</strong>
+                <strong>${verdictLabel}</strong>
+                <p style="margin-top: 10px; font-size: 14px; color: #cbd5f5;">
+                    ${v.explanation || "The system could not confidently classify the text."}
+                </p>
             </div>
 
         </div>
     `;
 
-    requestAnimationFrame(() => {
-        document.getElementById("bar-transformer").style.width =
-            (t.ai_probability * 100) + "%";
-        document.getElementById("bar-logistic").style.width =
-            (l.ai_probability * 100) + "%";
-    });
+    animateProgress(
+        document.getElementById("bar-transformer"),
+        t.ai_probability * 100
+    );
+    animateProgress(
+        document.getElementById("bar-logistic"),
+        l.ai_probability * 100
+    );
 }

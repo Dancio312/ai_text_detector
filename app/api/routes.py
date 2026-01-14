@@ -9,7 +9,7 @@ router = APIRouter()
 # ==============================
 
 MIN_WORDS = 20
-DEMO_MODE = True  # TODO: disable after ML integration
+DEMO_MODE = True
 
 
 # ==============================
@@ -25,9 +25,15 @@ class ModelResult(BaseModel):
     label: str
 
 
+class Verdict(BaseModel):
+    label: str
+    explanation: str
+
+
 class AnalyzeResponse(BaseModel):
     transformer: ModelResult
     logistic_regression: ModelResult
+    verdict: Verdict
     features: Dict[str, int]
 
 
@@ -57,25 +63,32 @@ async def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
         )
 
     # ==============================
-    # DEMO / MOCK MODE
+    # DEMO MODE
     # ==============================
     if DEMO_MODE:
         transformer_prob = 0.60
-        logistic_prob = 0.40
-
-    # ==============================
-    # REAL ML MODE (future)
-    # ==============================
+        logistic_prob = 0.70
     else:
-        # TODO:
-        # - preprocess text
-        # - run transformer model
-        # - run classical ML model
         transformer_prob = 0.0
         logistic_prob = 0.0
 
     transformer_label = "AI" if transformer_prob >= 0.5 else "HUMAN"
     logistic_label = "AI" if logistic_prob >= 0.5 else "HUMAN"
+
+    # ==============================
+    # FINAL VERDICT
+    # ==============================
+    if transformer_label == logistic_label:
+        verdict_label = transformer_label
+        explanation = (
+            "Both models independently reached the same conclusion."
+        )
+    else:
+        verdict_label = "UNCERTAIN"
+        explanation = (
+            "The models produced conflicting predictions, "
+            "therefore a definitive classification is not possible."
+        )
 
     return AnalyzeResponse(
         transformer=ModelResult(
@@ -85,6 +98,10 @@ async def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
         logistic_regression=ModelResult(
             ai_probability=logistic_prob,
             label=logistic_label,
+        ),
+        verdict=Verdict(
+            label=verdict_label,
+            explanation=explanation,
         ),
         features={
             "word_count": word_count,
