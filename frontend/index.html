@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <title>AI Text Detector</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+        <text y='.9em' font-size='90'>🧠</text>
+    </svg>">
+
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -29,7 +36,7 @@
 
         <div class="controls">
             <div class="counter" id="wordCounter">
-                Words counter: <strong>0</strong> / 20 ❌
+                Words counter: <strong>0</strong> / 20 <span class="bad">❌</span>
             </div>
 
             <div class="buttons">
@@ -38,6 +45,9 @@
                 <button class="danger" onclick="clearAll()">Clear all</button>
             </div>
         </div>
+
+        <!-- INFO MESSAGE -->
+        <div id="infoMessage" class="info hidden"></div>
 
         <div id="result"></div>
 

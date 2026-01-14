@@ -2,17 +2,21 @@
 const counter = document.getElementById("wordCounter");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const resultBox = document.getElementById("result");
+const infoMessage = document.getElementById("infoMessage");
 
 const MIN_WORDS = 20;
+let hasResult = false;
 
 textarea.addEventListener("input", updateCounter);
 
 function updateCounter() {
     const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
 
-    // 🔥 NOWE: anulowanie wyniku po zmianie tekstu
-    if (resultBox.innerHTML !== "") {
+    if (hasResult) {
         resultBox.innerHTML = "";
+        infoMessage.innerHTML = `<i class="fa-solid fa-circle-info"></i> Text changed — previous analysis result has been cleared.`;
+        infoMessage.classList.remove("hidden");
+        hasResult = false;
     }
 
     if (words >= MIN_WORDS) {
@@ -27,7 +31,9 @@ function updateCounter() {
 function clearAll() {
     textarea.value = "";
     resultBox.innerHTML = "";
+    infoMessage.classList.add("hidden");
     analyzeBtn.disabled = true;
+    hasResult = false;
     updateCounter();
 }
 
@@ -41,9 +47,9 @@ function generateExample() {
 
 async function analyze() {
     const text = textarea.value.trim();
-
     if (text.split(/\s+/).length < MIN_WORDS) return;
 
+    infoMessage.classList.add("hidden");
     resultBox.innerHTML = "<div class='result-card'>Analyzing...</div>";
 
     try {
@@ -67,6 +73,7 @@ function renderResult(data) {
     const l = data.logistic_regression;
 
     const finalAI = (t.ai_probability + l.ai_probability) / 2 >= 0.5;
+    hasResult = true;
 
     resultBox.innerHTML = `
         <div class="result-card">
