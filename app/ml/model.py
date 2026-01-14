@@ -1,11 +1,11 @@
 import joblib
 
 MODEL_PATH = "app/ml/model.joblib"
-
 _model = None
 
 
 def load_model():
-    print("Loading trained Logistic Regression model")
-    return joblib.load("app/ml/model.joblib")
-
+    global _model
+    if _model is None:
+        _model = joblib.load(MODEL_PATH)
+    return _model

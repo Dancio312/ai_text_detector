@@ -31,6 +31,7 @@
     <Compile Include="app\evaluation\evaluator.py" />
     <Compile Include="app\evaluation\__init__.py" />
     <Compile Include="app\experiments\paraphrase_experiment.py" />
+    <Compile Include="app\experiments\stability_experiment.py" />
     <Compile Include="app\experiments\__init__.py" />
     <Compile Include="app\main.py" />
     <Compile Include="app\ml\model.py" />
@@ -42,6 +43,7 @@
     <Compile Include="app\schemas\__init__.py" />
     <Compile Include="app\services\analysis_service.py" />
     <Compile Include="app\services\decision_service.py" />
+    <Compile Include="app\services\explainability_service.py" />
     <Compile Include="app\services\logging_service.py" />
     <Compile Include="app\services\__init__.py" />
     <Compile Include="app\tests\__init__.py" />

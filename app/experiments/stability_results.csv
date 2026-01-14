@@ -1,0 +1,4 @@
+variant,lr_probability,transformer_probability,weighted_score,verdict
+original,1.0,1.0,,AI
+paraphrase,1.0,0.95,,AI
+simplified,1.0,0.99,,AI

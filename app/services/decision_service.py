@@ -2,43 +2,52 @@ from app.core.config import (
     LR_WEIGHT,
     TRANSFORMER_WEIGHT,
     FINAL_AI_THRESHOLD,
-    FINAL_HUMAN_THRESHOLD
+    FINAL_HUMAN_THRESHOLD,
 )
 
 
-def label_to_score(label: str) -> float:
-    return 1.0 if label == "AI" else 0.0
+def interpret_confidence(score: float) -> str:
+    if score >= 0.85:
+        return "high"
+    elif score >= 0.65:
+        return "medium"
+    else:
+        return "low"
 
 
-def make_final_decision(lr_result: dict, transformer_result: dict):
-    lr_score = label_to_score(lr_result["label"])
-    tr_score = label_to_score(transformer_result["label"])
+def make_final_decision(lr_result: dict, transformer_result: dict) -> dict:
+    lr_prob = lr_result["ai_probability"]
+    t_prob = transformer_result["ai_probability"]
 
     weighted_score = (
-        lr_score * LR_WEIGHT +
-        tr_score * TRANSFORMER_WEIGHT
+        lr_prob * LR_WEIGHT +
+        t_prob * TRANSFORMER_WEIGHT
     )
 
     if weighted_score >= FINAL_AI_THRESHOLD:
-        final_label = "AI"
-        confidence = "high"
-        explanation = "Weighted consensus indicates AI-generated text."
+        label = "AI"
+        explanation = (
+            "Weighted ensemble score exceeds AI threshold. "
+            "Both semantic and statistical signals indicate AI-generated text."
+        )
 
     elif weighted_score <= FINAL_HUMAN_THRESHOLD:
-        final_label = "human"
-        confidence = "high"
-        explanation = "Weighted consensus indicates human-written text."
+        label = "HUMAN"
+        explanation = (
+            "Weighted ensemble score is below human threshold. "
+            "The text is consistent with human-authored content."
+        )
 
     else:
-        final_label = "uncertain"
-        confidence = "medium"
+        label = "UNCERTAIN"
         explanation = (
-            "Models provide conflicting signals; classification is uncertain."
+            "Models provide conflicting or weak signals. "
+            "Classification confidence is insufficient."
         )
 
     return {
-        "final_label": final_label,
-        "confidence": confidence,
-        "weighted_score": round(weighted_score, 2),
-        "explanation": explanation
+        "label": label,
+        "confidence": interpret_confidence(weighted_score),
+        "weighted_score": round(weighted_score, 3),
+        "explanation": explanation,
     }

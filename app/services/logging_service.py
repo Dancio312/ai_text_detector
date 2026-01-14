@@ -26,7 +26,7 @@ def log_analysis(
                 "lr_probability",
                 "transformer_label",
                 "transformer_probability",
-                "final_label",
+                "label",
                 "confidence",
                 "weighted_score"
             ])
@@ -38,7 +38,7 @@ def log_analysis(
             lr_result["ai_probability"],
             transformer_result["label"],
             transformer_result["ai_probability"],
-            final_decision["final_label"],
+            final_decision["label"],
             final_decision["confidence"],
             final_decision["weighted_score"]
         ])

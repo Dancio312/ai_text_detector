@@ -1,28 +1,49 @@
+import math
 import re
+from collections import Counter
 
-def clean_text(text: str) -> str:
-    text = text.lower()
-    text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"[^\w\s\.\!\?]", "", text)
-    return text.strip()
+STOPWORDS = {
+    "the", "and", "is", "in", "to", "of", "that", "it", "on", "for", "with",
+    "as", "was", "were", "be", "by", "this", "are", "from", "at"
+}
+
+
+def text_entropy(words):
+    counts = Counter(words)
+    total = len(words)
+    entropy = 0.0
+
+    for count in counts.values():
+        p = count / total
+        entropy -= p * math.log2(p)
+
+    return entropy
 
 
 def extract_features(text: str) -> dict:
-    cleaned = clean_text(text)
+    text_clean = text.strip()
+    words = re.findall(r"\b\w+\b", text_clean.lower())
+    sentences = re.split(r"[.!?]+", text_clean)
 
-    words = cleaned.split()
-    sentences = re.split(r"[.!?]+", cleaned)
-
-    words = [w for w in words if w]
-    sentences = [s for s in sentences if s.strip()]
-
-    num_chars = len(cleaned)
+    num_chars = len(text_clean)
     num_words = len(words)
-    num_sentences = len(sentences)
+    num_sentences = max(1, len([s for s in sentences if s.strip()]))
 
-    avg_word_length = sum(len(w) for w in words) / num_words if num_words else 0
-    avg_sentence_length = num_words / num_sentences if num_sentences else 0
-    lexical_diversity = len(set(words)) / num_words if num_words else 0
+    avg_word_length = sum(len(w) for w in words) / num_words
+    avg_sentence_length = num_words / num_sentences
+
+    lexical_diversity = len(set(words)) / num_words
+
+    punctuation_count = len(re.findall(r"[.,;:!?]", text_clean))
+    punctuation_density = punctuation_count / num_chars
+
+    uppercase_count = sum(1 for c in text_clean if c.isupper())
+    uppercase_ratio = uppercase_count / num_chars
+
+    stopword_count = sum(1 for w in words if w in STOPWORDS)
+    stopword_ratio = stopword_count / num_words
+
+    entropy = text_entropy(words)
 
     return {
         "num_chars": num_chars,
@@ -30,5 +51,9 @@ def extract_features(text: str) -> dict:
         "num_sentences": num_sentences,
         "avg_word_length": round(avg_word_length, 3),
         "avg_sentence_length": round(avg_sentence_length, 3),
-        "lexical_diversity": round(lexical_diversity, 3)
+        "lexical_diversity": round(lexical_diversity, 3),
+        "punctuation_density": round(punctuation_density, 4),
+        "uppercase_ratio": round(uppercase_ratio, 4),
+        "stopword_ratio": round(stopword_ratio, 3),
+        "entropy": round(entropy, 3),
     }

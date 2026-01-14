@@ -4,19 +4,21 @@ from app.ml.transformer_model import load_transformer
 from app.core.config import AI_THRESHOLD, MIN_TEXT_LENGTH
 from app.services.decision_service import make_final_decision
 from app.services.logging_service import log_analysis
-
-
-def interpret_confidence(probability: float) -> str:
-    if probability >= 0.85:
-        return "high"
-    elif probability >= 0.65:
-        return "medium"
-    else:
-        return "low"
+from app.services.explainability_service import explain_lr
 
 
 def analyze_text(text: str) -> dict:
-    # === Validation ===
+    # ==============================
+    # EDGE CASE: empty input
+    # ==============================
+    if not text or not text.strip():
+        return {
+            "error": "Empty text input"
+        }
+
+    # ==============================
+    # VALIDATION
+    # ==============================
     words = text.split()
     if len(words) < MIN_TEXT_LENGTH:
         return {
@@ -25,10 +27,14 @@ def analyze_text(text: str) -> dict:
             "provided_words": len(words),
         }
 
-    # === Feature extraction ===
+    # ==============================
+    # FEATURE EXTRACTION
+    # ==============================
     features = extract_features(text)
 
-    # === Logistic Regression ===
+    # ==============================
+    # LOGISTIC REGRESSION
+    # ==============================
     lr_model = load_model()
     X = [list(features.values())]
 
@@ -40,25 +46,45 @@ def analyze_text(text: str) -> dict:
         "label": lr_label,
     }
 
-    # === Transformer ===
-    transformer = load_transformer()
-    t_result = transformer(text[:512])[0]
+    # ==============================
+    # EXPLAINABILITY (LR)
+    # ==============================
+    explainability = explain_lr(
+        features=features,
+        model=lr_model,
+        top_k=3
+    )
 
-    t_prob = float(t_result["score"])
-    t_label = "AI" if t_result["label"] == "POSITIVE" else "human"
+    # ==============================
+    # TRANSFORMER (SAFE)
+    # ==============================
+    transformer = load_transformer()
+
+    try:
+        t_result = transformer(text[:512])[0]
+        t_prob = float(t_result["score"])
+        t_label = "AI" if t_result["label"] == "POSITIVE" else "human"
+    except Exception:
+        # fallback if transformer fails
+        t_prob = 0.5
+        t_label = "UNCERTAIN"
 
     transformer_result = {
         "ai_probability": round(t_prob, 2),
         "label": t_label,
     }
 
-    # === Decision Engine ===
+    # ==============================
+    # DECISION ENGINE (ENSEMBLE)
+    # ==============================
     final_decision = make_final_decision(
         lr_result=lr_result,
-        transformer_result=transformer_result,
+        transformer_result=transformer_result
     )
 
-    # === Logging ===
+    # ==============================
+    # LOGGING (CSV / EXPERIMENTS)
+    # ==============================
     log_analysis(
         text=text,
         lr_result=lr_result,
@@ -66,13 +92,18 @@ def analyze_text(text: str) -> dict:
         final_decision=final_decision,
     )
 
-    # === API RESPONSE ===
+    # ==============================
+    # API RESPONSE
+    # ==============================
     return {
         "logistic_regression": lr_result,
         "transformer": transformer_result,
         "verdict": {
-            "label": final_decision["final_label"].upper(),
+            "label": final_decision["label"],
             "explanation": final_decision["explanation"],
+            "confidence": final_decision["confidence"],
+            "weighted_score": final_decision["weighted_score"],
         },
+        "explainability": explainability,
         "features": features,
     }

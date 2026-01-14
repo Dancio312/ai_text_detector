@@ -23,6 +23,9 @@ class ModelResult(BaseModel):
 class Verdict(BaseModel):
     label: str
     explanation: str
+    confidence: str
+    weighted_score: float
+
 
 
 class AnalyzeResponse(BaseModel):
@@ -30,6 +33,23 @@ class AnalyzeResponse(BaseModel):
     logistic_regression: ModelResult
     verdict: Verdict
     features: Dict[str, Union[int, float]]
+    explainability: Explainability
+
+    class Config:
+        extra = "forbid"
+
+class ExplainFeature(BaseModel):
+    feature: str
+    value: float
+    weight: float
+    impact: float
+
+
+class Explainability(BaseModel):
+    model_type: str
+    top_positive_features: list[ExplainFeature]
+    top_negative_features: list[ExplainFeature]
+    note: str
 
 
 # ==============================
