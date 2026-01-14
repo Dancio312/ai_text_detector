@@ -111,7 +111,6 @@ textarea {
 
 .counter {
     font-size: 14px;
-    color: #e5e7eb;
 }
 
 /* ===== BUTTONS ===== */
@@ -155,7 +154,7 @@ button {
         font-weight: 600;
     }
 
-/* ===== INFO MESSAGE (CANCELLED RESULT) ===== */
+/* ===== INFO MESSAGE ===== */
 
 #infoMessage {
     display: none;
@@ -195,7 +194,7 @@ button {
         margin-bottom: 6px;
     }
 
-/* ===== PROGRESS BARS ===== */
+/* ===== PROGRESS ===== */
 
 .progress {
     height: 10px;
@@ -206,21 +205,16 @@ button {
 
 .progress-fill {
     height: 100%;
-    width: 0;
+    width: 0%;
     background: linear-gradient(90deg, #3b82f6, #22d3ee);
-    transition: width 0.8s ease;
+    transition: width 1.2s linear;
 }
 
-    .progress-fill.calibrating {
-        animation: pulse 0.35s ease-in-out infinite;
-    }
-
-/* ===== FINAL VERDICT ===== */
+/* ===== FINAL ===== */
 
 .final {
     text-align: center;
     font-size: 20px;
     margin-top: 20px;
     font-weight: 600;
-    color: #e5e7eb;
 }
