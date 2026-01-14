@@ -15,19 +15,18 @@ def interpret_confidence(probability: float) -> str:
         return "low"
 
 
-def analyze_text(text: str):
+def analyze_text(text: str) -> dict:
     # === Validation ===
     words = text.split()
     if len(words) < MIN_TEXT_LENGTH:
         return {
             "error": "Text too short for reliable analysis",
             "min_required_words": MIN_TEXT_LENGTH,
-            "provided_words": len(words)
+            "provided_words": len(words),
         }
 
     # === Feature extraction ===
     features = extract_features(text)
-    print("CALLING load_model()")
 
     # === Logistic Regression ===
     lr_model = load_model()
@@ -35,20 +34,10 @@ def analyze_text(text: str):
 
     lr_prob = float(lr_model.predict_proba(X)[0][1])
     lr_label = "AI" if lr_prob >= AI_THRESHOLD else "human"
-    lr_confidence = interpret_confidence(lr_prob)
-
-    lr_feedback = (
-        "Text structure and statistical features resemble AI-generated content."
-        if lr_label == "AI"
-        else
-        "Statistical features are consistent with human-written text."
-    )
 
     lr_result = {
         "ai_probability": round(lr_prob, 2),
         "label": lr_label,
-        "confidence_level": lr_confidence,
-        "feedback": lr_feedback
     }
 
     # === Transformer ===
@@ -57,40 +46,33 @@ def analyze_text(text: str):
 
     t_prob = float(t_result["score"])
     t_label = "AI" if t_result["label"] == "POSITIVE" else "human"
-    t_confidence = interpret_confidence(t_prob)
-
-    t_feedback = (
-        "Semantic coherence and phrasing patterns suggest AI-generated text."
-        if t_label == "AI"
-        else
-        "Semantic patterns are typical for human-authored text."
-    )
 
     transformer_result = {
         "ai_probability": round(t_prob, 2),
         "label": t_label,
-        "confidence_level": t_confidence,
-        "feedback": t_feedback
     }
 
-    # === Decision Engine (ensemble logic) ===
+    # === Decision Engine ===
     final_decision = make_final_decision(
         lr_result=lr_result,
-        transformer_result=transformer_result
+        transformer_result=transformer_result,
     )
 
-    # === Logging to CSV (experiments / evaluation) ===
+    # === Logging ===
     log_analysis(
         text=text,
         lr_result=lr_result,
         transformer_result=transformer_result,
-        final_decision=final_decision
+        final_decision=final_decision,
     )
 
-    # === Final response ===
+    # === API RESPONSE ===
     return {
         "logistic_regression": lr_result,
         "transformer": transformer_result,
-        "final_decision": final_decision,
-        "features": features
+        "verdict": {
+            "label": final_decision["final_label"].upper(),
+            "explanation": final_decision["explanation"],
+        },
+        "features": features,
     }

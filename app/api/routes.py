@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Dict
+from typing import Dict, Union
 
 from app.services.analysis_service import analyze_text
 from app.core.config import MIN_TEXT_LENGTH
@@ -29,7 +29,7 @@ class AnalyzeResponse(BaseModel):
     transformer: ModelResult
     logistic_regression: ModelResult
     verdict: Verdict
-    features: Dict[str, int]
+    features: Dict[str, Union[int, float]]
 
 
 # ==============================
@@ -57,6 +57,4 @@ async def analyze(payload: AnalyzeRequest) -> AnalyzeResponse:
             },
         )
 
-    # === REAL ANALYSIS (NO DEMO MODE) ===
-    result = analyze_text(text)
-    return result
+    return analyze_text(text)
