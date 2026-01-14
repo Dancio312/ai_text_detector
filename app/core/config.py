@@ -5,8 +5,8 @@ MODEL_NAMES = {
     "transformer": "Transformer (DistilBERT)"
 }
 
-# Decision thresholds
-AI_THRESHOLD = 0.6
+# Logistic Regression decision threshold
+AI_THRESHOLD = 0.8
 
 # Minimum text length (in words) for reliable analysis
 MIN_TEXT_LENGTH = 20
@@ -18,3 +18,11 @@ EVALUATION_COLUMNS = [
     "transformer_probability",
     "transformer_label"
 ]
+
+# Decision engine weights
+LR_WEIGHT = 0.4
+TRANSFORMER_WEIGHT = 0.6
+
+# Final ensemble decision thresholds
+FINAL_AI_THRESHOLD = 0.75
+FINAL_HUMAN_THRESHOLD = 0.25

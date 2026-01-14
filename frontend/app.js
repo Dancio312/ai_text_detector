@@ -1,7 +1,12 @@
 ﻿const textarea = document.getElementById("text");
 const counter = document.getElementById("wordCounter");
 const analyzeBtn = document.getElementById("analyzeBtn");
-const resultBox = document.getElementById("result");
+
+const resultContainer = document.getElementById("result");
+const verdictSection = document.getElementById("verdictSection");
+const detailsSection = document.getElementById("detailsSection");
+const systemSection = document.getElementById("systemSection");
+
 const infoMessage = document.getElementById("infoMessage");
 
 const MIN_WORDS = 20;
@@ -13,7 +18,9 @@ function updateCounter() {
     const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
 
     if (hasResult) {
-        resultBox.innerHTML = "";
+        verdictSection.innerHTML = "";
+        detailsSection.innerHTML = "";
+        systemSection.innerHTML = "";
         infoMessage.textContent = "Text changed — previous result has been cleared.";
         infoMessage.style.display = "block";
         hasResult = false;
@@ -25,7 +32,9 @@ function updateCounter() {
 
 function clearAll() {
     textarea.value = "";
-    resultBox.innerHTML = "";
+    verdictSection.innerHTML = "";
+    detailsSection.innerHTML = "";
+    systemSection.innerHTML = "";
     infoMessage.style.display = "none";
     analyzeBtn.disabled = true;
     hasResult = false;
@@ -45,7 +54,10 @@ async function analyze() {
     if (text.split(/\s+/).length < MIN_WORDS) return;
 
     infoMessage.style.display = "none";
-    resultBox.innerHTML = "<div class='result-card'>Analyzing...</div>";
+
+    verdictSection.innerHTML = "<div class='result-card'>Analyzing...</div>";
+    detailsSection.innerHTML = "";
+    systemSection.innerHTML = "";
 
     try {
         const response = await fetch("http://127.0.0.1:8000/analyze", {
@@ -58,7 +70,7 @@ async function analyze() {
         renderResult(data);
 
     } catch {
-        resultBox.innerHTML =
+        verdictSection.innerHTML =
             "<div class='result-card'>Cannot connect to backend.</div>";
     }
 }
@@ -71,39 +83,48 @@ function animateProgress(bar, targetPercent, duration = 1200) {
         const progress = Math.min((timestamp - start) / duration, 1);
         bar.style.width = (progress * targetPercent) + "%";
 
-        if (progress < 1) {
-            requestAnimationFrame(step);
-        }
+        if (progress < 1) requestAnimationFrame(step);
     }
 
     requestAnimationFrame(step);
 }
 
 function renderResult(data) {
-    const t = data.transformer;
-    const l = data.logistic_regression;
-    const v = data.verdict;
+    const transformer = data.transformer;
+    const logistic = data.logistic_regression;
+    const verdict = data.verdict;
 
     hasResult = true;
 
-    let verdictLabel;
-    if (v.label === "AI") {
-        verdictLabel = "🤖 AI Generated Text";
-    } else if (v.label === "HUMAN") {
-        verdictLabel = "🧑 Human Written Text";
+    // === VERDICT ===
+    let verdictTitle;
+    if (verdict.label === "AI") {
+        verdictTitle = "🤖 AI Generated Text";
+    } else if (verdict.label === "human" || verdict.label === "HUMAN") {
+        verdictTitle = "🧑 Human Written Text";
     } else {
-        verdictLabel = "⚖️ Inconclusive Result";
+        verdictTitle = "⚖️ Inconclusive Result";
     }
 
-    resultBox.innerHTML = `
+    verdictSection.innerHTML = `
+        <div class="result-card final">
+            <strong style="font-size: 18px;">${verdictTitle}</strong>
+            <p style="margin-top: 8px; font-size: 14px; color: #cbd5f5;">
+                ${verdict.explanation || "The system could not confidently classify the text."}
+            </p>
+        </div>
+    `;
+
+    // === DETAILS ===
+    detailsSection.innerHTML = `
         <div class="result-card">
 
             <div class="model">
-                <strong>Transformer</strong>
+                <strong>Transformer model</strong>
                 <div class="progress">
                     <div class="progress-fill" id="bar-transformer"></div>
                 </div>
-                ${(t.ai_probability * 100).toFixed(1)}%
+                ${(transformer.ai_probability * 100).toFixed(1)}%
             </div>
 
             <div class="model">
@@ -111,25 +132,25 @@ function renderResult(data) {
                 <div class="progress">
                     <div class="progress-fill" id="bar-logistic"></div>
                 </div>
-                ${(l.ai_probability * 100).toFixed(1)}%
-            </div>
-
-            <div class="final">
-                <strong>${verdictLabel}</strong>
-                <p style="margin-top: 10px; font-size: 14px; color: #cbd5f5;">
-                    ${v.explanation || "The system could not confidently classify the text."}
-                </p>
+                ${(logistic.ai_probability * 100).toFixed(1)}%
             </div>
 
         </div>
     `;
 
+    // === SYSTEM INFO ===
+    systemSection.innerHTML = `
+        <p style="margin-top: 14px; font-size: 12px; color: #94a3b8; text-align: center;">
+            Final decision based on ensemble analysis of multiple models.
+        </p>
+    `;
+
     animateProgress(
         document.getElementById("bar-transformer"),
-        t.ai_probability * 100
+        transformer.ai_probability * 100
     );
     animateProgress(
         document.getElementById("bar-logistic"),
-        l.ai_probability * 100
+        logistic.ai_probability * 100
     );
 }

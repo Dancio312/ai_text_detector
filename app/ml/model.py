@@ -6,7 +6,6 @@ _model = None
 
 
 def load_model():
-    global _model
-    if _model is None:
-        _model = joblib.load(MODEL_PATH)
-    return _model
+    print("Loading trained Logistic Regression model")
+    return joblib.load("app/ml/model.joblib")
+

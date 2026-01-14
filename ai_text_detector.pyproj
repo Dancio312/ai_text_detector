@@ -41,6 +41,8 @@
     <Compile Include="app\schemas\text_schema.py" />
     <Compile Include="app\schemas\__init__.py" />
     <Compile Include="app\services\analysis_service.py" />
+    <Compile Include="app\services\decision_service.py" />
+    <Compile Include="app\services\logging_service.py" />
     <Compile Include="app\services\__init__.py" />
     <Compile Include="app\tests\__init__.py" />
     <Compile Include="app\__init__.py" />
@@ -63,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\dataset.csv" />
+    <Content Include="data\training_data.csv" />
     <Content Include="frontend\app.js" />
     <Content Include="frontend\index.html" />
     <Content Include="frontend\style.css" />
