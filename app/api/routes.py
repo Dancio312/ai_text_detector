@@ -5,6 +5,7 @@ from typing import Any, Dict
 router = APIRouter()
 
 MIN_WORDS = 20
+DEMO_MODE = True  # ← do usunięcia po podpięciu modeli ML
 
 
 class AnalyzeRequest(BaseModel):
@@ -31,9 +32,27 @@ async def analyze(payload: AnalyzeRequest) -> Dict[str, Any]:
             },
         )
 
-    # TODO: tutaj podłączysz swoje modele ML
+    # ==============================
+    # TRYB DEMO / MOCK (do podpięcia ML)
+    # ==============================
+    if DEMO_MODE:
+        transformer_prob = 0.6
+        logistic_prob = 0.4
+    else:
+        # TODO: Podpiąć rzeczywiste modele ML
+        transformer_prob = 0.0
+        logistic_prob = 0.0
+
     return {
-        "logistic_regression": {"ai_probability": 0.5, "label": "unknown"},
-        "transformer": {"ai_probability": 0.5, "label": "unknown"},
-        "features": {"word_count": len(words)},
+        "transformer": {
+            "ai_probability": transformer_prob,
+            "label": "AI" if transformer_prob >= 0.5 else "HUMAN",
+        },
+        "logistic_regression": {
+            "ai_probability": logistic_prob,
+            "label": "AI" if logistic_prob >= 0.5 else "HUMAN",
+        },
+        "features": {
+            "word_count": len(words),
+        },
     }
