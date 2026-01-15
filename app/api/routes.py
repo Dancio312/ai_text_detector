@@ -33,7 +33,7 @@ class AnalyzeResponse(BaseModel):
     logistic_regression: ModelResult
     verdict: Verdict
     features: Dict[str, Union[int, float]]
-    explainability: Explainability
+    explainability: "Explainability"
 
     class Config:
         extra = "forbid"

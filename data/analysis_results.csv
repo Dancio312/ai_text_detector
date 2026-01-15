@@ -52,3 +52,5 @@ timestamp,text_length_words,lr_label,lr_probability,transformer_label,transforme
 2026-01-14T22:06:03.860495,30,AI,1.0,AI,1.0,AI,high,1.0
 2026-01-14T22:09:23.251592,49,human,0.0,human,1.0,UNCERTAIN,low,0.6
 2026-01-14T22:14:03.931467,49,human,0.0,human,1.0,UNCERTAIN,low,0.6
+2026-01-15T09:31:28.717510,30,AI,1.0,AI,1.0,AI,high,1.0
+2026-01-15T09:34:04.273575,30,AI,1.0,AI,1.0,AI,high,1.0
