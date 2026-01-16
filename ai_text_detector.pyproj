@@ -71,7 +71,6 @@
     <Content Include="frontend\app.js" />
     <Content Include="frontend\index.html" />
     <Content Include="frontend\style.css" />
-    <Content Include="PRZECZYTAJ PRZED.txt" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
