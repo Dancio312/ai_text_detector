@@ -46,7 +46,7 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
 
         data = response.json()
 
-        # === SAFETY CHECK (VERY IMPORTANT) ===
+        # === SAFETY CHECK ===
         if "logistic_regression" not in data:
             print(f"Skipping '{variant}' - validation error from API:")
             print(data)

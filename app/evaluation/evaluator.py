@@ -21,7 +21,7 @@ def evaluate(csv_path: str):
     with open(csv_path, newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
-        # === WALIDACJA STRUKTURY CSV ===
+        # === CSV Schema Validation ===
         missing = required_columns - set(reader.fieldnames)
         if missing:
             raise ValueError(f"Missing required columns in CSV: {missing}")
